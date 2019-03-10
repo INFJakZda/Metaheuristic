@@ -15,6 +15,35 @@ def prepareMatrix(samples):
 def calculateLengthMST(matrix):
     return np.sum(minimum_spanning_tree(matrix))
 
+def greedyMST(matrix):
+    temp_matrix = matrix
+    F = []
+    Edges = []
+    F.append((0, matrix[0]))
+    
+    for m in matrix:
+        m[0] = 0
+    
+    for i in range(200):
+        min_len = 0
+        for f in F:
+            vertex = list(f[1])
+            temp_min = min(filter(lambda x: x > 0, vertex))
+            if min_len == 0 or temp_min < min_len:
+                min_len = temp_min
+                next_vertex = vertex.index(min_len)
+                last_vertex = f[0]
+        F.append((next_vertex, matrix[next_vertex]))
+        Edges.append([last_vertex, next_vertex, min_len])
+        for m in matrix:
+            m[next_vertex] = 0
+    
+    result = 0
+    for edge in Edges:
+        result += edge[2]
+        
+    return result
+    
 def draw(x, y):
     plt.scatter(x, y)
     plt.show()
@@ -41,6 +70,10 @@ if __name__ == '__main__':
     #   - Divide matrix on 10 groups
     #   - In every group is one element
     #   - Add to every ggroup element which is closest to this ele
+    
+    print(calculateLengthMST(matrix))
+    print(greedyMST(matrix))
+    
 
     # VI TODO Regret
     #   - Divide matrix on 10 groups
