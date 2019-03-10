@@ -16,33 +16,34 @@ def calculateLengthMST(matrix):
     return np.sum(minimum_spanning_tree(matrix))
 
 def greedyMST_groups(matrix, n = 10):
-    temp_matrix = matrix
-    F = []
     Edges = []
-    F.append((0, matrix[0]))
+    min_lengths = []
+    first = []
+    for i in range(len(matrix[0])):
+        min_lengths.append(matrix[0][i])
+        first.append(0)
     
     for m in matrix:
         m[0] = 0
-    
+
     for i in range(200):
-        min_len = 0
-        for f in F:
-            vertex = list(f[1])
-            temp_min = min(filter(lambda x: x > 0, vertex))
-            if min_len == 0 or temp_min < min_len:
-                min_len = temp_min
-                next_vertex = vertex.index(min_len)
-                last_vertex = f[0]
-        F.append((next_vertex, matrix[next_vertex]))
-        Edges.append([last_vertex, next_vertex, min_len])
+        temp_min = min(filter(lambda x: x > 0, min_lengths))
+        
+        next_vertex = min_lengths.index(temp_min)
+        last_vertex = first[next_vertex]
+        min_lengths[next_vertex] = 0
+        Edges.append([last_vertex, next_vertex, temp_min])
         for m in matrix:
             m[next_vertex] = 0
+        for i in range(len(matrix[next_vertex])):
+            if matrix[next_vertex][i] < min_lengths[i]:
+                min_lengths[i] = matrix[next_vertex][i]
+                first[i] = next_vertex
     
     result = 0
     
     for i in range(n-1):
         longest = [0, 0, 0]
-        #longest = max([edge[2] for edge in Edges])
         for edge in Edges:
             if longest[2] < edge[2]:
                 longest = edge
