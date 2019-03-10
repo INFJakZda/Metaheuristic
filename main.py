@@ -15,7 +15,7 @@ def prepareMatrix(samples):
 def calculateLengthMST(matrix):
     return np.sum(minimum_spanning_tree(matrix))
 
-def greedyMST(matrix):
+def greedyMST_groups(matrix, n = 10):
     temp_matrix = matrix
     F = []
     Edges = []
@@ -39,13 +39,24 @@ def greedyMST(matrix):
             m[next_vertex] = 0
     
     result = 0
+    
+    for i in range(n-1):
+        longest = [0, 0, 0]
+        #longest = max([edge[2] for edge in Edges])
+        for edge in Edges:
+            if longest[2] < edge[2]:
+                longest = edge
+        Edges.remove(longest)
+    
     for edge in Edges:
         result += edge[2]
         
-    return result
+    return result, Edges
     
-def draw(x, y):
+def draw(x, y, Edges):
     plt.scatter(x, y)
+    for edge in Edges:
+        plt.plot([x[edge[0]], x[edge[1]]], [y[edge[0]], y[edge[1]]], 'k-')
     plt.show()
 
 if __name__ == '__main__':
@@ -72,8 +83,9 @@ if __name__ == '__main__':
     #   - Add to every ggroup element which is closest to this ele
     
     print(calculateLengthMST(matrix))
-    print(greedyMST(matrix))
-    
+    result_greedy, Edges_greedy = greedyMST_groups(matrix, 10)
+    print(result_greedy)
+    draw(x_samples, y_samples, Edges_greedy)
 
     # VI TODO Regret
     #   - Divide matrix on 10 groups
@@ -88,4 +100,4 @@ if __name__ == '__main__':
 
 
     # draw sample plot
-    # draw(x_samples, y_samples)
+    # draw(x_samples, y_samples, Edges)
