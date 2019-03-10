@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import time
 
 from sklearn.metrics.pairwise import euclidean_distances
 from scipy.sparse.csgraph import minimum_spanning_tree
@@ -112,10 +113,40 @@ def regretMethod(matrix, samples):
             if ele == -1:
                 isElement = 1
         
-    for group in groups:
-        print(group)
+    return groups
 
-        
+def calculateTime(groups, samples):
+    totalTime = 0
+    for group in groups:
+        groupSamples = []
+        for ele in group:
+            groupSamples.append(samples[ele])
+        groupMatrix = prepareMatrix(groupSamples)
+        totalTime += calculateLengthMST(groupMatrix)
+    return totalTime
+
+def testing(original_matrix, original_samples):
+    times = []
+    results = []
+    bestTime = np.inf
+    bestResult = 0
+    for i in range(100):
+        #print("START", i)
+        start = time.time()
+        regretGroups = regretMethod(original_matrix, original_samples)
+        elapsedTime = time.time() - start
+        times.append(elapsedTime)
+        result = calculateTime(regretGroups, original_samples)
+        results.append(result)
+        if bestTime > result:
+            bestTime = result
+            bestResult = regretGroups
+    
+    print('MIN:  ', np.min(results))
+    print('MAX:  ', np.max(results))
+    print('MEAN: ', np.average(results))
+    print('STD:  ', np.std(results))
+    print('TIME: ', np.mean(times))
 
 
 if __name__ == '__main__':
@@ -124,6 +155,7 @@ if __name__ == '__main__':
 
     # I read data from file
     samples = loadInstance(fileName)
+    original_samples = loadInstance(fileName)
     
     # II prepare coordinates data
     x_samples = [pair[0] for pair in samples]
@@ -151,12 +183,14 @@ if __name__ == '__main__':
     #   - Divide matrix on 10 groups
     #   - In every group is one element
     #   - Add to every ggroup element with calculated regret
-    regretMethod(original_matrix, samples)
+    # regretGroups = regretMethod(original_matrix, original_samples)
+    # print(calculateTime(regretGroups, original_samples))
 
     # VII TODO prepare tests
     #   - 100 tests for 2 methods
     #   - save best solution and its image with colored groups
     #   - calculate min, max, mean
+    testing(original_matrix, original_samples)
 
 
 
