@@ -84,11 +84,17 @@ def prepareCheckList(points, size = 201):
         listofzeros[int(point[0])] = idx
     return listofzeros
 
-def regretMethod(matrix, samples):
+def prepareClosest(points, size = 201):
+    listofinf = [999] * size
+    for point in points:
+        listofinf[int(point[0])] = 0
+    return listofinf
+
+def greedMethod(matrix, samples):
     # takes random 10 points
     groups = initializeGroups()
 
-    #prepare list of points and in which group point are
+    # prepare list of points and in which group point are
     listOfAvailablePoints = prepareCheckList(groups)
 
     # prepare list of sublist where are sorted neighbours by length
@@ -99,6 +105,8 @@ def regretMethod(matrix, samples):
         neighbours[idx].sort(key=lambda tup: tup[1])
         neighbours[idx].pop(0)
     isElement = 1
+    
+    # add to groups another vertexes
     while(isElement):
         minLength = 9999
         selectedElement = -1
@@ -120,8 +128,66 @@ def regretMethod(matrix, samples):
         for ele in listOfAvailablePoints:
             if ele == -1:
                 isElement = 1
-        
     return groups
+
+def regretMethod(matrix, samples):
+    # takes random 10 points
+    groups = initializeGroups()
+
+    # prepare list of points and in which group point are
+    listOfAvailablePoints = prepareCheckList(groups)
+    closestPoints = prepareClosest(groups)
+
+    # prepare list of sublist where are sorted neighbours by length
+    neighbours = [[] for _ in range(201)]
+    for idx in range(201):
+        neighbours[idx] = matrix[idx]
+        neighbours[idx] = [(i, x) for i, x in enumerate(neighbours[idx])]
+        neighbours[idx].sort(key=lambda tup: tup[1])
+        neighbours[idx].pop(0)
+    isElement = 1
+    
+    # add to groups another vertexes
+    while(isElement):
+        minLength = 9999
+        selectedElement = -1
+        selectedGroup = -1
+        toRemoveFromGroup = -1
+        closestHelper = closestPoints.copy()
+        availableHelper = listOfAvailablePoints.copy()
+        for idxGroup, group in enumerate(groups):
+            for ele in group:
+                if minLength > neighbours[ele][0][1]:
+                    if availableHelper[neighbours[ele][0][0]] == -1:
+                        minLength = neighbours[ele][0][1]
+                        selectedElement = neighbours[ele][0][0]
+                        selectedGroup = idxGroup
+                        toRemoveFromGroup = -1
+                    else:
+                        if neighbours[ele][0][1] < closestHelper[neighbours[ele][0][0]]:
+                            toRemoveFromGroup = [availableHelper[neighbours[ele][0][0]], neighbours[ele][0][0]]
+                            minLength = neighbours[ele][0][1]
+                            selectedElement = neighbours[ele][0][0]
+                            selectedGroup = idxGroup
+                            closestHelper[neighbours[ele][0][0]] = neighbours[ele][0][1]
+                            availableHelper[neighbours[ele][0][0]] = idxGroup
+
+                        else:
+                            neighbours[ele].pop(0)
+        if toRemoveFromGroup != -1:
+            if toRemoveFromGroup[1] in groups[toRemoveFromGroup[0]]: 
+                groups[toRemoveFromGroup[0]].remove(toRemoveFromGroup[1])
+        listOfAvailablePoints[selectedElement] = selectedGroup
+        closestPoints[selectedElement] = minLength
+        groups[selectedGroup].append(selectedElement)
+        neighbours[selectedElement].pop(0)
+        
+        isElement = 0
+        for ele in listOfAvailablePoints:
+            if ele == -1:
+                isElement = 1
+    return groups
+
 
 def calculateTime(groups, samples):
     totalTime = 0
@@ -155,7 +221,7 @@ def testing(original_matrix, original_samples):
     print('MEAN: ', np.average(results))
     print('STD:  ', np.std(results))
     print('TIME: ', np.mean(times))
-    return regretGroups
+    return bestGroup
 
 
 if __name__ == '__main__':
@@ -192,7 +258,7 @@ if __name__ == '__main__':
     #   - Divide matrix on 10 groups
     #   - In every group is one element
     #   - Add to every ggroup element with calculated regret
-    # regretGroups = regretMethod(original_matrix, original_samples)
+    # regretGroups = greedMethod(original_matrix, original_samples)
     # print(calculateTime(regretGroups, original_samples))
 
     # VII TODO prepare tests
