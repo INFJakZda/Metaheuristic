@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import random
+
 from sklearn.metrics.pairwise import euclidean_distances
 from scipy.sparse.csgraph import minimum_spanning_tree
 
@@ -60,6 +62,37 @@ def draw(x, y, Edges):
         plt.plot([x[edge[0]], x[edge[1]]], [y[edge[0]], y[edge[1]]], 'k-')
     plt.show()
 
+def initializeGroups(n = 10, size = 201):
+    mylist = []
+    for _ in range(0, 10):
+        x = random.randint(0, size - 1)
+        mylist.append([x])
+    return mylist
+
+def prepareCheckList(points, size = 201):
+    listofzeros = [-1] * size
+    for idx, point in enumerate(points):
+        listofzeros[int(point[0])] = idx
+    return listofzeros
+
+def regretMethod(matrix, samples):
+    # takes random 10 points
+    groups = initializeGroups()
+
+    #prepare list of points and in which group point are
+    listOfAvailablePoints = prepareCheckList(groups)
+
+    # prepare list of 10 sublist where are sorted neighbours by length
+    neighbours = [[] for _ in range(10)]
+    for idx, group in enumerate(groups):
+        neighbours[idx] = matrix[group[0]]
+        neighbours[idx] = [(i, x) for i, x in enumerate(neighbours[idx])]
+        neighbours[idx].sort(key=lambda tup: tup[1])
+        neighbours[idx].pop(0)
+    print(neighbours)
+        
+
+
 if __name__ == '__main__':
     fileName = "objects.data"
     # fileName = "test.data"
@@ -73,6 +106,7 @@ if __name__ == '__main__':
 
     # III calculate matrix with euclidean distances
     matrix = prepareMatrix(samples)
+    original_matrix = prepareMatrix(samples)
 
     # IV Prepare function to calculate MST
     # This function takes matrix and return length of minimum spanning tree
@@ -83,15 +117,16 @@ if __name__ == '__main__':
     #   - In every group is one element
     #   - Add to every ggroup element which is closest to this ele
     
-    print(calculateLengthMST(matrix))
-    result_greedy, Edges_greedy = greedyMST_groups(matrix, 10)
-    print(result_greedy)
-    draw(x_samples, y_samples, Edges_greedy)
+    # print(calculateLengthMST(matrix))
+    # result_greedy, Edges_greedy = greedyMST_groups(matrix, 10)
+    # print(result_greedy)
+    # draw(x_samples, y_samples, Edges_greedy)
 
     # VI TODO Regret
     #   - Divide matrix on 10 groups
     #   - In every group is one element
     #   - Add to every ggroup element with calculated regret
+    regretMethod(original_matrix, samples)
 
     # VII TODO prepare tests
     #   - 100 tests for 2 methods
