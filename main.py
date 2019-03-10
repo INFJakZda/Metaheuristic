@@ -82,14 +82,39 @@ def regretMethod(matrix, samples):
     #prepare list of points and in which group point are
     listOfAvailablePoints = prepareCheckList(groups)
 
-    # prepare list of 10 sublist where are sorted neighbours by length
-    neighbours = [[] for _ in range(10)]
-    for idx, group in enumerate(groups):
-        neighbours[idx] = matrix[group[0]]
+    # prepare list of sublist where are sorted neighbours by length
+    neighbours = [[] for _ in range(201)]
+    for idx in range(201):
+        neighbours[idx] = matrix[idx]
         neighbours[idx] = [(i, x) for i, x in enumerate(neighbours[idx])]
         neighbours[idx].sort(key=lambda tup: tup[1])
         neighbours[idx].pop(0)
-    print(neighbours)
+    isElement = 1
+    while(isElement):
+        minLength = 9999
+        selectedElement = -1
+        selectedGroup = -1
+        for idxGroup, group in enumerate(groups):
+            for ele in group:
+                if minLength > neighbours[ele][0][1]:
+                    if listOfAvailablePoints[neighbours[ele][0][0]] == -1:
+                        minLength = neighbours[ele][0][1]
+                        selectedElement = neighbours[ele][0][0]
+                        selectedGroup = idxGroup
+                    else:
+                        neighbours[ele].pop(0)
+        listOfAvailablePoints[selectedElement] = selectedGroup
+        groups[selectedGroup].append(selectedElement)
+        neighbours[selectedElement].pop(0)
+        
+        isElement = 0
+        for ele in listOfAvailablePoints:
+            if ele == -1:
+                isElement = 1
+        
+    for group in groups:
+        print(group)
+
         
 
 
