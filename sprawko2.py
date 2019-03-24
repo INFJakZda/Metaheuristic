@@ -12,16 +12,19 @@ def count_result(groups, matrix):
         count_pairs += sum(range(len(group)))
     return sum_all / count_pairs, sum_all, count_pairs
 
-def delta(old_groups, element, matrix): #element - [id, stara grupa, nowa grupa]
+def delta(old_groups, element, matrix, old_sum_all, old_count_pairs): #element - [id, stara grupa, nowa grupa]
     sum_amplitude = 0
     pairs_amplitude = 0
     for edge in old_groups[element[1]]:
-        sum_amplitude -= matrix[id][edge]
+        sum_amplitude -= matrix[element[0]][edge]
     for edge in old_groups[element[2]]:
-        sum_amplitude += matrix[id][edge]
+        sum_amplitude += matrix[element[0]][edge]
     pairs_amplitude -= sum(range(len(old_groups[element[1]]))) + sum(range(len(old_groups[element[2]])))
-    pairs_amplitude += sum(range(len(old_groups[element[1]] - 1))) + sum(range(len(old_groups[element[2]] + 1)))
-    return sum_amplitude, pairs_amplitude
+    pairs_amplitude += sum(range(len(old_groups[element[1]]) - 1)) + sum(range(len(old_groups[element[2]]) + 1))
+    print(sum_amplitude, pairs_amplitude)
+    
+    return (old_sum_all + sum_amplitude) / (old_count_pairs + pairs_amplitude)
+
 
 if __name__ == '__main__':
     no_groups = 20
@@ -68,4 +71,6 @@ if __name__ == '__main__':
     #   - calculate min, max, mean
 
 	print(count_result(random_groups, matrix))
-    print(count_result(greed_groups, matrix))
+    result, sum_all, count_pairs = count_result(greed_groups, matrix)
+    print(result, sum_all, count_pairs)
+    print(delta(greed_groups,[greed_groups[2][0], 2, 5], matrix, sum_all, count_pairs))
