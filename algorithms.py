@@ -39,9 +39,9 @@ def greedyMST_groups(matrix, n = 10):
         
     return result, Edges
 
-def initializeGroups(n = 10, size = 201):
+def initializeGroups(n = 20, size = 201):
     mylist = []
-    for _ in range(0, 10):
+    for _ in range(0, n):
         x = random.randint(0, size - 1)
         mylist.append([x])
     return mylist
@@ -58,16 +58,18 @@ def prepareClosest(points, size = 201):
         listofinf[int(point[0])] = 0
     return listofinf
 
-def greedMethod(matrix, samples):
+def greedMethod(n, matrix, samples):
+    samples_len = len(samples)
+    
     # takes random 10 points
-    groups = initializeGroups()
+    groups = initializeGroups(n=n, size=samples_len)
 
     # prepare list of points and in which group point are
-    listOfAvailablePoints = prepareCheckList(groups)
+    listOfAvailablePoints = prepareCheckList(groups, size=samples_len)
 
     # prepare list of sublist where are sorted neighbours by length
-    neighbours = [[] for _ in range(201)]
-    for idx in range(201):
+    neighbours = [[] for _ in range(samples_len)]
+    for idx in range(samples_len):
         neighbours[idx] = matrix[idx]
         neighbours[idx] = [(i, x) for i, x in enumerate(neighbours[idx])]
         neighbours[idx].sort(key=lambda tup: tup[1])
@@ -99,16 +101,17 @@ def greedMethod(matrix, samples):
     return groups
 
 def regretMethod(matrix, samples):
+    samples_len = len(samples)
     # takes random 10 points
-    groups = initializeGroups()
+    groups = initializeGroups(size=samples_len)
 
     # prepare list of points and in which group point are
-    listOfAvailablePoints = prepareCheckList(groups)
-    closestPoints = prepareClosest(groups)
+    listOfAvailablePoints = prepareCheckList(groups, size=samples_len)
+    closestPoints = prepareClosest(groups, size=samples_len)
 
     # prepare list of sublist where are sorted neighbours by length
-    neighbours = [[] for _ in range(201)]
-    for idx in range(201):
+    neighbours = [[] for _ in range(samples_len)]
+    for idx in range(samples_len):
         neighbours[idx] = matrix[idx]
         neighbours[idx] = [(i, x) for i, x in enumerate(neighbours[idx])]
         neighbours[idx].sort(key=lambda tup: tup[1])

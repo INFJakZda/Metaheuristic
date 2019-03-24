@@ -9,7 +9,7 @@ def draw(x, y, Edges):
     plt.show()
 
 def drawRegret(x, y, Edges):
-    colors = cm.rainbow(np.linspace(0, 1, 10))
+    colors = cm.rainbow(np.linspace(0, 1, len(Edges)))
     for cl, group in enumerate(Edges):
         for ele in group:
             plt.scatter(x[ele], y[ele], color=colors[cl])
