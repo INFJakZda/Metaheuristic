@@ -1,3 +1,6 @@
+import numpy as np
+import time
+
 from helpers import loadInstance, prepareMatrix, randomGroups
 from algorithms import greedMethod
 from drawing import drawRegret
@@ -31,8 +34,8 @@ def checkGroup(ele, groups):
             return idx
 
 def steepest(groups, matrix):
-    for i in range(100):
-        print(i)
+    for i in range(50):
+        #print(i)
         element = [0, 0, 0]
         result, sum_all, count_pairs = count_result(groups, matrix)
         minimal = result
@@ -60,14 +63,14 @@ def steepest(groups, matrix):
     return groups
 
 def greedy(groups, matrix):
-    for i in range(100):
+    for i in range(50):
         #print(i)
         element = [0, 0, 0]
         result, sum_all, count_pairs = count_result(groups, matrix)
         minimal = result
         neighbours_all_groups = []
         for group in groups:
-            neighbours_all_groups.append(get_neighbours_from_other_groups(group, matrix, 20))
+            neighbours_all_groups.append(get_neighbours_from_other_groups(group, matrix, 15))
             
         for j in range(len(neighbours_all_groups)):
             for idx, edge in enumerate(neighbours_all_groups[j]):
@@ -96,6 +99,39 @@ def get_neighbours_from_other_groups(group, matrix, niegh_dist):    #returns dic
         #neighbours[idx].pop(0)
     return neighbours
 
+def testing(original_matrix, original_samples):
+    times = []
+    results = []
+    bestTime = np.inf
+    bestGroup = 0
+    startGroup = 0
+    for i in range(100):
+        print("START", i)
+        random_groups = randomGroups(20, len(original_samples))
+        start = time.time()
+        regretGroups = steepest(random_groups.copy(), original_matrix)
+        elapsedTime = time.time() - start
+        times.append(elapsedTime)
+        result, _, _ = count_result(regretGroups, original_matrix)
+        results.append(result)
+        if bestTime > result:
+            bestTime = result
+            bestGroup = regretGroups
+            startGroup = random_groups
+
+    print("***RESULTS***")
+    print('MIN:  ', np.min(results))
+    print('MAX:  ', np.max(results))
+    print('MEAN: ', np.average(results))
+    print('STD:  ', np.std(results))
+    print("***TIME***")
+    print('MIN: ', np.min(times))
+    print('MAX: ', np.max(times))
+    print('MEAN: ', np.average(times))
+    print('STD:  ', np.std(times))
+
+    return bestGroup, startGroup
+
 if __name__ == '__main__':
     no_groups = 20
 
@@ -114,14 +150,14 @@ if __name__ == '__main__':
     matrix = prepareMatrix(samples)
 
     # IV Random Groups
-    random_groups = randomGroups(no_groups, len(samples))
-    print(count_result(random_groups, matrix))
+    # random_groups = randomGroups(no_groups, len(samples))
+    # print(count_result(random_groups, matrix))
     #print(random_groups)
     #drawRegret(x_samples, y_samples, random_groups)
 
     # V Groups from first project - Greedy
-    greed_groups = greedMethod(no_groups, matrix, samples)
-    print(count_result(greed_groups, matrix))
+    # greed_groups = greedMethod(no_groups, matrix, samples)
+    # print(count_result(greed_groups, matrix))
     #print(greed_groups)
     #drawRegret(x_samples, y_samples, greed_groups)
 
@@ -149,6 +185,9 @@ if __name__ == '__main__':
     
     #print(get_neighbours_from_other_groups(greed_groups[0], matrix, 30))
     
-    steepest_groups = greedy(greed_groups, matrix)
-    drawRegret(x_samples, y_samples, steepest_groups)
-    print(count_result(steepest_groups, matrix))
+    # steepest_groups = greedy(greed_groups, matrix)
+    # drawRegret(x_samples, y_samples, steepest_groups)
+    # print(count_result(steepest_groups, matrix))
+    best, random = testing(matrix, samples)
+    drawRegret(x_samples, y_samples, random)
+    drawRegret(x_samples, y_samples, best)
