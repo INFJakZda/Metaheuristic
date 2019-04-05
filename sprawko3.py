@@ -33,35 +33,6 @@ def checkGroup(ele, groups):
         if ele in group:
             return idx
 
-def steepest(groups, matrix):
-    for i in range(1000):
-        #print(i)
-        element = [0, 0, 0]
-        result, sum_all, count_pairs = count_result(groups, matrix)
-        minimal = result
-        neighbours_all_groups = []
-        for group in groups:
-            neighbours_all_groups.append(get_neighbours_from_other_groups(group, matrix, 30))
-            
-        for j in range(len(neighbours_all_groups)):
-            for idx, edge in enumerate(neighbours_all_groups[j]):
-                for value in neighbours_all_groups[j][edge]:
-                    group_idx = checkGroup(value[0], groups)
-                    current = delta(groups, [edge, j, group_idx], matrix, sum_all, count_pairs)
-                    if(current < minimal):
-                        minimal = current
-                        element = [edge, group_idx, j]
-    
-        #print(minimal)
-        if (element == [0,0,0]):
-            break
-        else:
-            groups[element[2]].remove(element[0])
-            groups[element[1]].append(element[0])
-        element = [0,0,0]
-        #result = minimal
-    return groups
-    
 def get_neighbours_from_other_groups(group, matrix, niegh_dist):    #returns dict with {ele: [(element_index, distance), ...]} for every ele from this group
     neighbours = dict((ele, []) for ele in group)
     for idx in group:
@@ -71,25 +42,62 @@ def get_neighbours_from_other_groups(group, matrix, niegh_dist):    #returns dic
         #neighbours[idx].pop(0)
     return neighbours
 
+def steepest(groups_original, matrix):
+    groups = groups_original.copy()
+    neighbours_all_groups = []
+    for group in groups:
+        neighbours_all_groups.append(get_neighbours_from_other_groups(group, matrix, 50))
+    for i in range(1000):
+        #print(i)
+        element = [0, 0, 0]
+        result, sum_all, count_pairs = count_result(groups, matrix)
+        minimal = result
+        
+        for j in range(len(neighbours_all_groups)):
+            for idx, edge in enumerate(neighbours_all_groups[j]):
+                for value in neighbours_all_groups[j][edge]:
+                    group_idx = checkGroup(value[0], groups)
+                    current = delta(groups, [edge, j, group_idx], matrix, sum_all, count_pairs)
+                    if(current < minimal):
+                        minimal = current
+                        element = [edge, group_idx, j]
+                        #print(element)
+    
+        #print(minimal)
+        if (element == [0,0,0]):
+            break
+        else:
+            groups[element[2]].remove(element[0])
+            groups[element[1]].append(element[0])
+            #print(element)
+            #print(neighbours_all_groups[element[2]][element[0]])
+            del neighbours_all_groups[element[2]][element[0]]
+            neighbours_all_groups[element[1]] = get_neighbours_from_other_groups(groups[element[1]], matrix, 50)
+        element = [0,0,0]
+        result = minimal
+    return groups
+    
 def testing(original_matrix, original_samples):
     times = []
     results = []
     bestTime = np.inf
     bestGroup = 0
     startGroup = 0
-    for i in range(100):
+    regretGroups = []
+    random_groups = []
+    for i in range(2):
         print("START", i)
-        random_groups = randomGroups(20, len(original_samples))
+        random_groups = greedMethod(20, original_matrix, original_samples)
         start = time.time()
-        regretGroups = steepest(random_groups.copy(), original_matrix)
+        regretGroups = steepest(random_groups, original_matrix)
         elapsedTime = time.time() - start
         times.append(elapsedTime)
         result, _, _ = count_result(regretGroups, original_matrix)
         results.append(result)
         if bestTime > result:
             bestTime = result
-            bestGroup = regretGroups
-            startGroup = random_groups
+            bestGroup = regretGroups.copy()
+            startGroup = random_groups.copy()
 
     print("***RESULTS***")
     print('MIN:  ', np.min(results))
@@ -107,8 +115,8 @@ def testing(original_matrix, original_samples):
 if __name__ == '__main__':
     no_groups = 20
 
-    fileName = "data/objects20_06.data"
-    # fileName = "data/objects.data"
+    # fileName = "data/objects20_06.data"
+    fileName = "data/objects.data"
     # fileName = "data/test.data"
 
     # I read data from file
@@ -121,30 +129,17 @@ if __name__ == '__main__':
     # III calculate matrix with euclidean distances
     matrix = prepareMatrix(samples)
 
-    # IV Random Groups
-    random_groups = randomGroups(no_groups, len(samples))
-    # print(count_result(random_groups, matrix))
-    #print(random_groups)
-    #drawRegret(x_samples, y_samples, random_groups)
-
-    # V Groups from first project - Greedy
+    # IV Groups from first project - Greedy
     greed_groups = greedMethod(no_groups, matrix, samples)
-    # print(count_result(greed_groups, matrix))
-    #print(greed_groups)
+    print(count_result(greed_groups, matrix))
     #drawRegret(x_samples, y_samples, greed_groups)
 
-    #print(count_result(random_groups, matrix))
-    # result, sum_all, count_pairs = count_result(greed_groups, matrix)
-    # print(result, sum_all, count_pairs)
-    # print(delta(greed_groups,[greed_groups[2][0], 2, 5], matrix, sum_all, count_pairs))
-    
-    #print(get_neighbours_from_other_groups(greed_groups[0], matrix, 30))
-    
-    steepest_groups = steepest(greed_groups, matrix)
+    # V Start local search - steepest
+    # steepest_groups = steepest(greed_groups, matrix)
     # drawRegret(x_samples, y_samples, steepest_groups)
     # print(count_result(steepest_groups, matrix))
     
     # TESTING
-    # best, random = testing(matrix, samples)
-    # drawRegret(x_samples, y_samples, random)
-    # drawRegret(x_samples, y_samples, best)
+    best, random = testing(matrix, samples)
+    drawRegret(x_samples, y_samples, random)
+    drawRegret(x_samples, y_samples, best)

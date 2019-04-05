@@ -1,4 +1,5 @@
 import random
+random.seed(0)
 
 def greedyMST_groups(matrix, n = 10):
     Edges = []
