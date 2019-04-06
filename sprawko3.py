@@ -42,7 +42,7 @@ def get_neighbours_from_other_groups(group, matrix, niegh_dist):    #returns dic
         #neighbours[idx].pop(0)
     return neighbours
 
-def steepest(groups_original, matrix):
+def steepest_candidate_list(groups_original, matrix):
     groups = groups_original.copy()
     neighbours_all_groups = []
     for group in groups:
@@ -76,23 +76,54 @@ def steepest(groups_original, matrix):
         element = [0,0,0]
         result = minimal
     return groups
+
+def steepest_old(groups, matrix):
+    for i in range(1000):
+        #print(i)
+        element = [0, 0, 0]
+        result, sum_all, count_pairs = count_result(groups, matrix)
+        minimal = result
+        neighbours_all_groups = []
+        for group in groups:
+            neighbours_all_groups.append(get_neighbours_from_other_groups(group, matrix, 100))
+            
+        for j in range(len(neighbours_all_groups)):
+            for idx, edge in enumerate(neighbours_all_groups[j]):
+                for value in neighbours_all_groups[j][edge]:
+                    group_idx = checkGroup(value[0], groups)
+                    current = delta(groups, [edge, j, group_idx], matrix, sum_all, count_pairs)
+                    if(current < minimal):
+                        minimal = current
+                        element = [edge, group_idx, j]
+    
+        #print(minimal)
+        if (element == [0,0,0]):
+            break
+        else:
+            groups[element[2]].remove(element[0])
+            groups[element[1]].append(element[0])
+        element = [0,0,0]
+        #result = minimal
+    return groups
     
 def testing(original_matrix, original_samples):
     times = []
     results = []
     bestTime = np.inf
-    bestGroup = 0
-    startGroup = 0
+    bestGroup = []
+    startGroup = []
     regretGroups = []
     random_groups = []
-    for i in range(2):
+    for i in range(100):
         print("START", i)
         random_groups = greedMethod(20, original_matrix, original_samples)
         start = time.time()
-        regretGroups = steepest(random_groups, original_matrix)
+        regretGroups = steepest_old(random_groups, original_matrix)
         elapsedTime = time.time() - start
+        print(str(elapsedTime) + " sec")
         times.append(elapsedTime)
         result, _, _ = count_result(regretGroups, original_matrix)
+        print(str(result) + " result")
         results.append(result)
         if bestTime > result:
             bestTime = result
@@ -115,8 +146,8 @@ def testing(original_matrix, original_samples):
 if __name__ == '__main__':
     no_groups = 20
 
-    # fileName = "data/objects20_06.data"
-    fileName = "data/objects.data"
+    fileName = "data/objects20_06.data"
+    # fileName = "data/objects.data"
     # fileName = "data/test.data"
 
     # I read data from file
