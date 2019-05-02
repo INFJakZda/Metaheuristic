@@ -28,6 +28,19 @@ def delta(old_groups, element, matrix, old_sum_all, old_count_pairs): #element -
     
     return (old_sum_all + sum_amplitude) / (old_count_pairs + pairs_amplitude)
 
+def delta_cashe(old_groups, element, matrix, old_sum_all, old_count_pairs): #element - [id, stara grupa, nowa grupa]
+    sum_amplitude = 0
+    pairs_amplitude = 0
+    for edge in old_groups[element[1]]:
+        sum_amplitude -= matrix[element[0]][edge]
+    for edge in old_groups[element[2]]:
+        sum_amplitude += matrix[element[0]][edge]
+    pairs_amplitude -= sum(range(len(old_groups[element[1]]))) + sum(range(len(old_groups[element[2]])))
+    pairs_amplitude += sum(range(len(old_groups[element[1]]) - 1)) + sum(range(len(old_groups[element[2]]) + 1))
+    #print(sum_amplitude, pairs_amplitude)
+    
+    return (old_sum_all + sum_amplitude) / (old_count_pairs + pairs_amplitude)
+
 def checkGroup(ele, groups):
     for idx, group in enumerate(groups):
         if ele in group:
@@ -77,6 +90,77 @@ def steepest_candidate_list(groups_original, matrix):
         result = minimal
     return groups
 
+def steepest_cashe_and_list(groups_original, matrix):
+    groups = groups_original.copy()
+    neighbours_all_groups = []
+    for group in groups:
+        neighbours_all_groups.append(get_neighbours_from_other_groups(group, matrix, 50))
+    for i in range(500):
+        #print(i)
+        element = [0, 0, 0]
+        result, sum_all, count_pairs = count_result(groups, matrix)
+        minimal = result
+        
+        for j in range(len(neighbours_all_groups)):
+            for idx, edge in enumerate(neighbours_all_groups[j]):
+                for value in neighbours_all_groups[j][edge]:
+                    group_idx = checkGroup(value[0], groups)
+                    current = delta_cashe(groups, [edge, j, group_idx], matrix, sum_all, count_pairs)
+                    if(current < minimal):
+                        minimal = current
+                        element = [edge, group_idx, j]
+                        #print(element)
+    
+        #print(minimal)
+        if (element == [0,0,0]):
+            break
+        else:
+            groups[element[2]].remove(element[0])
+            groups[element[1]].append(element[0])
+            #print(element)
+            #print(neighbours_all_groups[element[2]][element[0]])
+            del neighbours_all_groups[element[2]][element[0]]
+            neighbours_all_groups[element[1]] = get_neighbours_from_other_groups(groups[element[1]], matrix, 50)
+        element = [0,0,0]
+        result = minimal
+    return groups
+
+def steepest_cashe(groups_original, matrix):
+    groups = groups_original.copy()
+    neighbours_all_groups = []
+    for group in groups:
+        neighbours_all_groups.append(get_neighbours_from_other_groups(group, matrix, 50))
+    for i in range(1000):
+        #print(i)
+        element = [0, 0, 0]
+        result, sum_all, count_pairs = count_result(groups, matrix)
+        minimal = result
+        
+        for j in range(len(neighbours_all_groups)):
+            for idx, edge in enumerate(neighbours_all_groups[j]):
+                for value in neighbours_all_groups[j][edge]:
+                    group_idx = checkGroup(value[0], groups)
+                    current = delta(groups, [edge, j, group_idx], matrix, sum_all, count_pairs)
+                    if(current < minimal):
+                        minimal = current
+                        element = [edge, group_idx, j]
+                        #print(element)
+    
+        #print(minimal)
+        if (element == [0,0,0]):
+            break
+        else:
+            groups[element[2]].remove(element[0])
+            groups[element[1]].append(element[0])
+            #print(element)
+            #print(neighbours_all_groups[element[2]][element[0]])
+            del neighbours_all_groups[element[2]][element[0]]
+            neighbours_all_groups[element[1]] = get_neighbours_from_other_groups(groups[element[1]], matrix, 50)
+        element = [0,0,0]
+        result = minimal
+    return groups
+
+
 def steepest_old(groups, matrix):
     for i in range(1000):
         #print(i)
@@ -91,7 +175,7 @@ def steepest_old(groups, matrix):
             for idx, edge in enumerate(neighbours_all_groups[j]):
                 for value in neighbours_all_groups[j][edge]:
                     group_idx = checkGroup(value[0], groups)
-                    current = delta(groups, [edge, j, group_idx], matrix, sum_all, count_pairs)
+                    current = delta(groups, [edge, group_idx, j], matrix, sum_all, count_pairs)
                     if(current < minimal):
                         minimal = current
                         element = [edge, group_idx, j]
@@ -114,7 +198,8 @@ def testing(original_matrix, original_samples):
     startGroup = []
     regretGroups = []
     random_groups = []
-    for i in range(100):
+    # random_groups = greedMethod(20, original_matrix, original_samples)
+    for i in range(1):
         print("START", i)
         random_groups = greedMethod(20, original_matrix, original_samples)
         start = time.time()
