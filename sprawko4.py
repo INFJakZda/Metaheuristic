@@ -82,8 +82,45 @@ def steepest_cashe_and_list(groups_original, matrix, neigh=35):
         result = minimal
     return groups
 
-def perturbate(groups, num):
+def new_group_heuristic(element, groups, matrix):
+    min_avg = 100000
+    min_group_id = None
+    for i in range(len(groups)):
+        if len(groups[i]) == 0:
+            return i
+        group_value = 0
+        for group_elem in groups[i]:
+            group_value += matrix[group_elem][element]
+        group_value = group_value / len(groups[i])
+        if group_value < min_avg:
+            min_avg = group_value
+            min_group_id = i
+    return min_group_id
+
+def small_perturbate(groups, num):
     #TODO
+    for i in range(num):
+        random_group_idx = random.randint(0, len(groups) - 1)
+        random_idx = random.randint(0, len(groups[random_group_idx]) - 1)
+        new_random_group_idx = random.randint(0, len(groups) - 1)
+        groups[new_random_group_idx].append(groups[random_group_idx][random_idx])
+        groups[random_group_idx].remove(groups[random_group_idx][random_idx])
+    return groups
+
+def large_perturbate(groups, num):
+    removed = []
+    for i in range(num):
+        random_group_idx = random.randint(0, len(groups) - 1)
+        while (len(groups[random_group_idx]) == 0):
+            random_group_idx = random.randint(0, len(groups) - 1)
+        random_idx = random.randint(0, len(groups[random_group_idx]) - 1)
+        removed.append(groups[random_group_idx][random_idx])
+        groups[random_group_idx].remove(groups[random_group_idx][random_idx])
+    for element in removed:
+        new_group_idx = new_group_heuristic(element, groups, matrix)
+        # todo find nearest neigbour
+        # find his group
+        groups[new_group_idx].append(element)
     return groups
 
 # ************ ITERATIVE LS ************
@@ -100,7 +137,7 @@ def testingILS(original_matrix, original_samples):
     for i in range(1000):
         print("START", i)
         start = time.time()
-        random_groups = perturbate(regretGroups, 10)
+        random_groups = small_perturbate(regretGroups, 10)
         regretGroups = steepest_cashe_and_list(random_groups, original_matrix)
         elapsedTime = time.time() - start
         print(str(elapsedTime) + " sec")
