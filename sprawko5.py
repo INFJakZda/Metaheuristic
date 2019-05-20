@@ -50,7 +50,7 @@ def get_neighbours_from_other_groups(group, matrix, niegh_dist):    #returns dic
 
 
 # ************ LOCAL SEARCH METHOD ************
-def steepest_cashe_and_list(groups_original, matrix, neigh=35):
+def steepest_cashe_and_list(groups_original, matrix, neigh=50):
     groups = groups_original.copy()
     neighbours_all_groups = []
     for group in groups:
